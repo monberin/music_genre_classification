@@ -12,8 +12,7 @@ https://colab.research.google.com/drive/1Ni-NIGfXClowib--m0FjZSvLvDhRYGpq?usp=sh
 A simple AI-driven app that you can use to determine the music genre of audio files.
 
 ## Usage:
-1. Download csv file with features from *LINK* (you can also generate it yourself by executing corresponding cell in notebook
-2.
+1. Download csv file with features from *LINK* (you can also generate it yourself by executing corresponding cell in notebook)
  ```
 git clone https://github.com/monberin/music_genre_classification
 cd music_genre_classification
