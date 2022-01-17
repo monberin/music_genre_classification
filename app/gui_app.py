@@ -5,15 +5,12 @@ from PyQt5.QtGui import QIcon, QPalette, QColor, QPixmap
 import sip
 
 import numpy as np
-from tensorflow import keras
-from keras.preprocessing.image import load_img,img_to_array
-
 import pandas as pd
-from cnn import get_f1
 
 from pydub import AudioSegment
 import matplotlib.pyplot as plt
 import sklearn
+from sklearn import preprocessing
 
 import librosa
 from librosa import feature, onset, beat, effects
@@ -37,9 +34,6 @@ class SearchFiles(QWidget):
         self.setWindowTitle(self.title)
         self.setGeometry(self.left, self.top, self.width, self.height)
         self.openFileNameDialog()
-
-        # self.generate_spectogram()
-        # self.prediction()
         self.generate_features()
 
         
@@ -51,31 +45,32 @@ class SearchFiles(QWidget):
         self.fileName, _ = QFileDialog.getOpenFileName(self,"QFileDialog.getOpenFileName()", "select the media file","Audio Files(*.wav *.mp3 *.flv)", options=options)
         print(self.fileName)
 
-    def generate_spectogram(self):
+    # def generate_spectogram(self):
 
-        import os
-        filename, file_extension = os.path.splitext(self.fileName)
+    #     import os
+    #     filename, file_extension = os.path.splitext(self.fileName)
 
-        # convert file to wav format
-        if file_extension==".mp3":
-            sound = AudioSegment.from_mp3(self.fileName)
-            sound.export(filename+".wav", format="wav")
-            self.fileName = filename+".wav"
+    #     # convert file to wav format
+    #     if file_extension==".mp3":
+    #         sound = AudioSegment.from_mp3(self.fileName)
+    #         sound.export(filename+".wav", format="wav")
+    #         self.fileName = filename+".wav"
         
-        if file_extension==".flv":
-            sound = AudioSegment.from_flv(self.fileName)
-            sound.export(filename+".wav", format="wav")
-            self.fileName = filename+".wav"
+    #     if file_extension==".flv":
+    #         sound = AudioSegment.from_flv(self.fileName)
+    #         sound.export(filename+".wav", format="wav")
+    #         self.fileName = filename+".wav"
 
 
-        y,sr = librosa.load(self.fileName)
-        mels = librosa.feature.melspectrogram(y=y,sr=sr)
-        fig = plt.Figure()
-        canvas = FigureCanvas(fig)
-        p = plt.imshow(librosa.power_to_db(mels,ref=np.max))
-        plt.savefig(f'./fig.png')
+    #     y,sr = librosa.load(self.fileName)
+    #     mels = librosa.feature.melspectrogram(y=y,sr=sr)
+    #     fig = plt.Figure()
+    #     canvas = FigureCanvas(fig)
+    #     p = plt.imshow(librosa.power_to_db(mels,ref=np.max))
+    #     plt.savefig(f'./fig.png')
 
     def generate_features(self):
+
         fn_list_i = [
             feature.chroma_stft,
             feature.chroma_cens,
@@ -92,55 +87,8 @@ class SearchFiles(QWidget):
             ]
             
         def get_feature_vector(y,sr): 
-            feat_vect_i = [ np.mean(funct(y,sr)) for funct in fn_list_i]
-            feat_vect_ii = [ np.mean(funct(y)) for funct in fn_list_ii] 
-            feature_vector = feat_vect_i + feat_vect_ii 
-            spectral_centroids = feature.spectral_centroid(y, sr=sr)[0]
-            spectral_centroids_delta = np.mean(feature.delta(spectral_centroids))
-            spectral_centroids_accelerate = np.mean(feature.delta(spectral_centroids, order=2))
-            feature_vector.append(np.mean(spectral_centroids))
-            feature_vector.append(spectral_centroids_delta)
-            feature_vector.append(spectral_centroids_accelerate)
 
-            # Spectral Bandwidth
-            # The spectral bandwidth is defined as the width of the band of light at one-half the peak
-            # maximum (or full width at half maximum [FWHM]) and is represented by the two vertical
-            # red lines and λSB on the wavelength axis.
-            spectral_bandwidth_2 = np.mean(librosa.feature.spectral_bandwidth(y, sr=sr)[0])
-            spectral_bandwidth_3 = np.mean(librosa.feature.spectral_bandwidth(y, sr=sr, p=3)[0])
-            spectral_bandwidth_4 = np.mean(librosa.feature.spectral_bandwidth(y, sr=sr, p=4)[0])
-            feature_vector.append(spectral_bandwidth_2)
-            feature_vector.append(spectral_bandwidth_3)
-            feature_vector.append(spectral_bandwidth_4)
-
-            # spectral flux
-            onset_env = np.mean(onset.onset_strength(y=y, sr=sr))
-            feature_vector.append(onset_env)
-            
-            tempo_y, _ = beat.beat_track(y, sr=sr)
-            feature_vector.append(np.mean(tempo_y))
-
-            # Perceptrual shock wave represents the sound rhythm and emotion
-            y_harm, y_perc = effects.hpss(y)
-
-            feature_vector.append(np.mean(y_harm))
-            feature_vector.append(np.mean(y_perc))
-
-            # mfcc_alt = feature.mfcc(y=y, sr=sr)
-            # delta = np.mean(feature.delta(mfcc_alt))
-            # accelerate = np.mean(feature.delta(mfcc_alt, order=2))
-
-            # feature_vector.append(mfcc_alt)
-            # feature_vector.append(delta)
-            # feature_vector.append(accelerate)
-
-
-            return feature_vector
-        
-        y , sr = librosa.load(self.fileName,sr=None)
-        feature_vector = get_feature_vector(y, sr)
-        print(feature_vector)
-        header =[
+            header =[
             "chroma_cens",
             "spectral_centroid",
             "spectral_bandwidth",
@@ -160,11 +108,57 @@ class SearchFiles(QWidget):
             "harmonics",
             "perceptual_shock_wave"
             ]
-        feature_vector = pd.DataFrame([feature_vector[1:]], columns = header)
 
-        print(feature_vector)
-        # feature_vector = np.array(feature_vector)
-        # feature_vector = feature_vector.reshape(1, -1)
+            data = pd.read_csv('./features_new.csv')
+            data = data.iloc[0:, 1:] 
+            data.head()
+            data = data.loc[:, data.columns != 'genre']
+
+            feat_vect_i = [ np.mean(funct(y,sr)) for funct in fn_list_i]
+            feat_vect_ii = [ np.mean(funct(y)) for funct in fn_list_ii] 
+            feature_vector = feat_vect_i + feat_vect_ii 
+            spectral_centroids = feature.spectral_centroid(y, sr=sr)[0]
+            spectral_centroids_delta = np.mean(feature.delta(spectral_centroids))
+            spectral_centroids_accelerate = np.mean(feature.delta(spectral_centroids, order=2))
+            feature_vector.append(np.mean(spectral_centroids))
+            feature_vector.append(spectral_centroids_delta)
+            feature_vector.append(spectral_centroids_accelerate)
+
+            # Spectral Bandwidth
+            spectral_bandwidth_2 = np.mean(librosa.feature.spectral_bandwidth(y, sr=sr)[0])
+            spectral_bandwidth_3 = np.mean(librosa.feature.spectral_bandwidth(y, sr=sr, p=3)[0])
+            spectral_bandwidth_4 = np.mean(librosa.feature.spectral_bandwidth(y, sr=sr, p=4)[0])
+            feature_vector.append(spectral_bandwidth_2)
+            feature_vector.append(spectral_bandwidth_3)
+            feature_vector.append(spectral_bandwidth_4)
+
+            # spectral flux
+            onset_env = np.mean(onset.onset_strength(y=y, sr=sr))
+            feature_vector.append(onset_env)
+            
+            tempo_y, _ = beat.beat_track(y, sr=sr)
+            feature_vector.append(np.mean(tempo_y))
+
+            # Perceptrual shock wave
+            y_harm, y_perc = effects.hpss(y)
+
+            feature_vector.append(np.mean(y_harm))
+            feature_vector.append(np.mean(y_perc))
+
+            feature_vector = pd.DataFrame([feature_vector[1:]],columns=header)
+
+            data = data.append(feature_vector)
+
+            cols = data.columns
+            min_max_scaler = preprocessing.MinMaxScaler()
+            np_scaled = min_max_scaler.fit_transform(data)
+
+            data = pd.DataFrame(np_scaled, columns = cols)
+
+            return data.iloc[-1:]
+        
+        y , sr = librosa.load(self.fileName,sr=None)
+        feature_vector = get_feature_vector(y, sr)
 
         loaded_rf = joblib.load("./svm.joblib")
         y_pred = loaded_rf.predict(feature_vector)
@@ -173,18 +167,17 @@ class SearchFiles(QWidget):
 
 
     
-    def prediction(self):
-        
+    # def prediction(self):
+    
+    #     model = keras.models.load_model('./finalized_model', custom_objects={'get_f1':get_f1})
+    #     image_data = load_img('./fig.png',color_mode='rgba',target_size=(256,256))
+    #     image = img_to_array(image_data)
+    #     image = np.reshape(image, (1,256,256,4))
+    #     pred = model.predict(image/255)
+    #     pred = pred.reshape((7,))
+    #     class_label = np.argmax(pred)
 
-        model = keras.models.load_model('./finalized_model', custom_objects={'get_f1':get_f1})
-        image_data = load_img('./fig.png',color_mode='rgba',target_size=(256,256))
-        image = img_to_array(image_data)
-        image = np.reshape(image, (1,256,256,4))
-        pred = model.predict(image/255)
-        pred = pred.reshape((7,))
-        class_label = np.argmax(pred)
-
-        show_result(class_label)
+    #     show_result(class_label)
 
 
 
@@ -192,10 +185,8 @@ def show_result(label):
     genres = ['blues', 'classical', 'country', 'disco', 'pop', 'hiphop', 'metal', 'reggae','rock']
     messagebox = QMessageBox()
     messagebox.setWindowTitle('Result!')
-    # messagebox.setStyleSheet("QLabel{height: 200px; min-height: 150px; max-height: 200px;}")
-    # messagebox.setIconPixmap(QPixmap("/home/monberin/Documents/AI/music_genre_classification/app/images/d.jpeg"))
     print(f"./images/{genres[label]}.png")
-    messagebox.setIconPixmap(QPixmap(f"/home/monberin/Documents/AI/music_genre_classification/app/images/{genres[label]}.png"))
+    messagebox.setIconPixmap(QPixmap(f"./images/{genres[label]}.png"))
     messagebox.setText('Predicted genre: '+genres[label])
     messagebox.exec_()
 
@@ -257,9 +248,7 @@ if __name__ == '__main__':
     info_button.setStyleSheet(button_style)
     info_button.clicked.connect(help_info)
     button.clicked.connect(search_files_window)
-    # icon = QLabel(window)
-    # icon = setPixmap(QPixmap("/home/monberin/Documents/AI/music_genre_classification/app/images/icon.png"))
-    # layout.addWidget(icon)
+
     layout.addWidget(info_button)
     layout.addWidget(button)
     window.setLayout(layout)
