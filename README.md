@@ -9,10 +9,10 @@ https://colab.research.google.com/drive/1Ni-NIGfXClowib--m0FjZSvLvDhRYGpq?usp=sh
 
 ## Data: 
 -  GTZAN Dataset(https://www.kaggle.com/andradaolteanu/gtzan-dataset-music-genre-classification)
--  *LINK*
+-  https://drive.google.com/drive/folders/1DH06p5KgFQV8cI0eRG1CyHO8TsL7kWdR?usp=sharing
 
 ## Usage:
-1. Download csv file with features from *LINK* (you can also generate it yourself by executing corresponding cell in notebook)
+1. Download csv file with features from https://drive.google.com/drive/folders/1DH06p5KgFQV8cI0eRG1CyHO8TsL7kWdR?usp=sharing (you can also generate it yourself by executing corresponding cell in notebook)
 2. Execute commands below
  ```
 git clone https://github.com/monberin/music_genre_classification
