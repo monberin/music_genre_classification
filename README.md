@@ -13,6 +13,7 @@ A simple AI-driven app that you can use to determine the music genre of audio fi
 
 ## Usage:
 1. Download csv file with features from *LINK* (you can also generate it yourself by executing corresponding cell in notebook)
+2. Execute commands below
  ```
 git clone https://github.com/monberin/music_genre_classification
 cd music_genre_classification
@@ -20,3 +21,7 @@ pip install -r requirements.txt
 cd app 
 python gui_app.py
 ```
+3. Choose the audio file (to see the examples go to audio_examples folder)
+4. Enjoy!
+
+## Classification models comparison:
