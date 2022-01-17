@@ -10,7 +10,7 @@ A simple AI-driven app that you can use to determine the music genre of audio fi
 https://colab.research.google.com/drive/1Ni-NIGfXClowib--m0FjZSvLvDhRYGpq?usp=sharing#scrollTo=EbHJFBCqHRFV
 
 ## Data: 
--  GTZAN Dataset(https://www.kaggle.com/andradaolteanu/gtzan-dataset-music-genre-classification)
+-  GTZAN Dataset[https://www.kaggle.com/andradaolteanu/gtzan-dataset-music-genre-classification]
 -  https://drive.google.com/drive/folders/1DH06p5KgFQV8cI0eRG1CyHO8TsL7kWdR?usp=sharing
 
 ## Usage:
