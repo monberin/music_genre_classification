@@ -18,6 +18,7 @@ import librosa.display
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 
 import joblib
+import os
 
 class SearchFiles(QWidget):
 
@@ -44,30 +45,6 @@ class SearchFiles(QWidget):
         #, "(*.mp3)", "(*.fvl)"]
         self.fileName, _ = QFileDialog.getOpenFileName(self,"QFileDialog.getOpenFileName()", "select the media file","Audio Files(*.wav *.mp3 *.flv)", options=options)
         print(self.fileName)
-
-    # def generate_spectogram(self):
-
-    #     import os
-    #     filename, file_extension = os.path.splitext(self.fileName)
-
-    #     # convert file to wav format
-    #     if file_extension==".mp3":
-    #         sound = AudioSegment.from_mp3(self.fileName)
-    #         sound.export(filename+".wav", format="wav")
-    #         self.fileName = filename+".wav"
-        
-    #     if file_extension==".flv":
-    #         sound = AudioSegment.from_flv(self.fileName)
-    #         sound.export(filename+".wav", format="wav")
-    #         self.fileName = filename+".wav"
-
-
-    #     y,sr = librosa.load(self.fileName)
-    #     mels = librosa.feature.melspectrogram(y=y,sr=sr)
-    #     fig = plt.Figure()
-    #     canvas = FigureCanvas(fig)
-    #     p = plt.imshow(librosa.power_to_db(mels,ref=np.max))
-    #     plt.savefig(f'./fig.png')
 
     def generate_features(self):
 
@@ -157,28 +134,25 @@ class SearchFiles(QWidget):
 
             return data.iloc[-1:]
         
+        filename, file_extension = os.path.splitext(self.fileName)
+
+        # convert file to wav format
+        if file_extension==".mp3":
+            sound = AudioSegment.from_mp3(self.fileName)
+            sound.export(filename+".wav", format="wav")
+            self.fileName = filename+".wav"
+        
+        if file_extension==".flv":
+            sound = AudioSegment.from_flv(self.fileName)
+            sound.export(filename+".wav", format="wav")
+            self.fileName = filename+".wav"
+            
         y , sr = librosa.load(self.fileName,sr=None)
         feature_vector = get_feature_vector(y, sr)
 
         loaded_rf = joblib.load("./svm.joblib")
         y_pred = loaded_rf.predict(feature_vector)
         show_result(y_pred[0])
-
-
-
-    
-    # def prediction(self):
-    
-    #     model = keras.models.load_model('./finalized_model', custom_objects={'get_f1':get_f1})
-    #     image_data = load_img('./fig.png',color_mode='rgba',target_size=(256,256))
-    #     image = img_to_array(image_data)
-    #     image = np.reshape(image, (1,256,256,4))
-    #     pred = model.predict(image/255)
-    #     pred = pred.reshape((7,))
-    #     class_label = np.argmax(pred)
-
-    #     show_result(class_label)
-
 
 
 def show_result(label):
