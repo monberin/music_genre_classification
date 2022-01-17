@@ -5,6 +5,7 @@ A simple AI-driven app that you can use to determine the music genre of audio fi
 ## Presentation video:
 
 ## Presentation:
+https://docs.google.com/presentation/d/1ibV-GctYYtIEx7boTFKlS-i3UrJdWJOIaikX1kjZmdg/edit?usp=sharing
 
 ## Notebook:
 https://colab.research.google.com/drive/1Ni-NIGfXClowib--m0FjZSvLvDhRYGpq?usp=sharing#scrollTo=EbHJFBCqHRFV
